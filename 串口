@@ -1,0 +1,17 @@
+kea128
+uart_init(uart2,9600);
+
+void UART2_IRQHandler(void)
+{
+  uint8 dat;
+  uart_getchar(uart2,&dat);
+  switch(dat)
+  {
+    case 49:
+      break;
+    case 50:
+      break;
+    default:
+      break;
+  }
+}
