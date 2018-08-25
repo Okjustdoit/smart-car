@@ -27,3 +27,35 @@
     ftm_pwm_duty(ftm2, ftm_ch5, 0);  
   }
 }
+
+ /********编码器*********
+  *ftm的计数引脚可查看KEA128_port_cfg.h文件内的FTM0_COUNT_PIN与FTM1_COUNT_PIN的宏定义得知
+  *一个ftm同一时间只能实现一种功能，如果用于测速就不能用于输出PWM
+    ftm_count_init(ftm0);   //对E0引脚输入的脉冲进行计数      E0接编码器LSB    
+    gpio_init(C5,GPI,0);    //用于判断方向                  C5接编码器DIR         GPI输入检测
+    port_pull(C5);          //IO上拉
+    port_pull(E0);          //IO上拉
+    
+    ftm_count_init(ftm1);   //对E7引脚输入的脉冲进行计数     E7接编码器LSB
+    gpio_init(D0,GPI,0);    //用于判断方向                 D5接编码器DIR
+    port_pull(D0);          //IO上拉
+    port_pull(E7);          //IO上拉
+
+/**********调用**************/
+//正转为正
+void Encoder()
+{ 
+    uint16 temp1,temp2;
+    temp1 = ftm_count_get(ftm0);//获取速度信息
+    temp2 = ftm_count_get(ftm1);  
+   
+    ftm_count_clean(ftm0);//计数器清零 
+    ftm_count_clean(ftm1);
+    //根据方向信号判断正负，假设方向信号是高电平时为反转
+    if(gpio_get(C5))       encoder_Right =-(int16) temp1;   //速度取负       
+    else                   encoder_Right = temp1; 
+    if(gpio_get(D0))       encoder_Left = temp2;  
+    else                   encoder_Left =-(int16) (temp2);//速度取负  
+    encoder_All=(encoder_Right+encoder_Left)/10;
+
+}
