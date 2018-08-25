@@ -1,0 +1,45 @@
+/*********读取数据是会先擦除扇区，在读取完毕时不再进行读取（拨码开关控制）*********/
+uint8 sector = FLASH_SECTOR_NUM - 1;//最后一个扇区
+uint16 min_V[3],max_V[3];
+FLASH_Init();//初始化
+FLASH_EraseSector(sector);//擦除最后一个扇区
+//-------------------------------------------------------------------------------------------------------------------
+//  @brief      FLASH数据写入到扇区
+//  @param      SectorNum 		需要写入的扇区编号
+//  @param      *buf	 		数据首地址
+//  @param      len		 		写入的字节数 特别提醒一个uint16变量是两个字节 一个uint32变量是四个字节 每次写入得长度必须为4得倍数
+//  @param      offset		 	必须为4的整数倍
+//  @return     				返回1写入失败，返回0写入成功
+//  @since      v1.0
+//  Sample usage:               FLASH_WriteSector(10,(const uint8 *)buf,4,0);//将buf数组里面的前四位数据写入到10号扇区(每一位是uint8类型)
+//  @note                       使用flash时，最好从最后一个扇区开始使用，最后一个扇区号为255
+//-------------------------------------------------------------------------------------------------------------------
+FLASH_WriteSector(sector,(const uint8 *)&max_V,6,0);//写入6个字节到最后一个扇区，偏移0字节
+FLASH_WriteSector(sector,(const uint8 *)&min_V,6,8); 
+for(j = 0;j < 3;j++)   //读取3个电感的采样标定的最大值
+{
+    max_V[j] = flash_read(sector,j*2,uint16);//flash进行数据读取
+    min_V[j] = flash_read(sector,8+j*2,uint16); 
+    max_Vold[j] = max_V[j];
+}  
+
+/**********************开机需要读取flash中的数据***************/
+int main(void)
+{
+   static int j;
+   for(j = 0;j < 3;j++)   //读取3个电感的采样标定的最大值
+   {
+         max_V[j] = flash_read(sector,j*2,uint16);
+         min_V[j] = flash_read(sector,8+j*2,uint16);  
+         
+         max_Vold[j] = max_V[j];
+   }
+   allinit();
+   
+    while(1)
+  {
+   //Vcan() ;
+
+              
+  }
+}
